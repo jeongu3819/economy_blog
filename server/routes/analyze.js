@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { chromium } from 'playwright'
+import path from 'path'
 import selectors from '../config/selectors.config.js'
 import { randomDelay, humanType } from '../utils/delay.js'
 import { broadcast } from '../utils/logger.js'
@@ -15,21 +16,21 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: '티커를 입력해주세요.' })
   }
 
-  let browser = null
+  let browserContext = null
 
   try {
     broadcast('ChatGPT GPTs에 접속 중...', 'info')
 
-    browser = await chromium.launch({
+    const userDataDir = path.join(process.cwd(), 'playwright-session')
+
+    browserContext = await chromium.launchPersistentContext(userDataDir, {
       headless: false,
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    })
-
-    const context = await browser.newContext({
       userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     })
 
-    const page = await context.newPage()
+    const pages = browserContext.pages()
+    const page = pages.length > 0 ? pages[0] : await browserContext.newPage()
 
     // Navigate to GPTs
     await page.goto(GPTS_URL, {
@@ -37,6 +38,23 @@ router.post('/', async (req, res) => {
       timeout: 60000,
     })
     await randomDelay(3000, 5000)
+
+    // Check for login button
+    const loginBtn = await page.$(selectors.chatgpt.loginButton).catch(() => null)
+    if (loginBtn) {
+      broadcast('로그인이 필요하여 로그인을 시도합니다...', 'info')
+      await loginBtn.click()
+      await randomDelay(2000, 3000)
+      
+      const googleBtn = await page.waitForSelector(selectors.chatgpt.googleLoginButton, { timeout: 15000 }).catch(() => null)
+      if (googleBtn) {
+        broadcast('구글로 계속하기 선택됨. (필요시 팝업된 브라우저에서 직접 계정을 선택해주세요)', 'info')
+        await googleBtn.click()
+        await randomDelay(5000, 8000)
+      } else {
+        broadcast('구글 로그인 버튼을 찾을 수 없습니다. 브라우저에서 직접 로그인해주세요.', 'warn')
+      }
+    }
 
     // Build prompt
     const today = new Date().toISOString().split('T')[0]
@@ -60,9 +78,10 @@ ${newsContext}
 
     broadcast('프롬프트를 입력 중...', 'info')
 
-    // Wait for ChatGPT textarea
+    // Wait for ChatGPT textarea (longer timeout to allow manual login if needed)
     try {
-      await page.waitForSelector(selectors.chatgpt.textArea, { timeout: 30000 })
+      broadcast('입력창 대기 중...', 'info')
+      await page.waitForSelector(selectors.chatgpt.textArea, { timeout: 120000 })
       await randomDelay(1000, 2000)
 
       // Type prompt
@@ -156,8 +175,8 @@ ${newsContext}
         }
       }
 
-      await browser.close()
-      browser = null
+      await browserContext.close()
+      browserContext = null
 
       if (responseContent) {
         broadcast('AI 분석 완료! 블로그 원고가 생성되었습니다.', 'success')
@@ -174,8 +193,8 @@ ${newsContext}
       // If ChatGPT interaction fails, generate fallback content
       broadcast(`ChatGPT 직접 접속 실패: ${innerErr.message}. 기본 원고를 생성합니다.`, 'warn')
 
-      await browser?.close().catch(() => {})
-      browser = null
+      await browserContext?.close().catch(() => {})
+      browserContext = null
 
       const fallbackContent = generateFallbackContent(ticker, scrapeData)
       return res.json({
@@ -190,7 +209,7 @@ ${newsContext}
     broadcast(`AI 분석 오류: ${err.message}`, 'error')
     return res.status(500).json({ error: `AI 분석 실패: ${err.message}` })
   } finally {
-    if (browser) await browser.close().catch(() => {})
+    if (browserContext) await browserContext.close().catch(() => {})
   }
 })
 

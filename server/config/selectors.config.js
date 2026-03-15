@@ -14,6 +14,8 @@ export default {
   },
 
   chatgpt: {
+    loginButton: '[data-testid="login-button"]',
+    googleLoginButton: 'button[data-provider="google"]',
     textArea: '#prompt-textarea, textarea[data-id="root"]',
     sendButton: 'button[data-testid="send-button"], button[aria-label="Send prompt"]',
     responseContainer: '[data-message-author-role="assistant"]',
