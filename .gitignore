@@ -1,6 +1,22 @@
 node_modules/
 dist/
 .env
-*.log
+
+# MacOS
 .DS_Store
+
+# Logs
+*.log
+
+# Playwright Python Session (Very Important! Contains cookies)
 playwright-session/
+backend/playwright-session/
+
+# Python caching & environments
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.venv/
+.pytest_cache/

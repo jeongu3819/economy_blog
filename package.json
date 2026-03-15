@@ -1,12 +1,13 @@
 {
   "name": "economy-blog",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Stock Analysis & Auto-Blogging Platform",
   "scripts": {
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
-    "dev:client": "cd client && npm run dev",
-    "dev:server": "cd server && node server.js",
-    "install:all": "npm install && cd client && npm install && cd ../server && npm install"
+    "dev:client": "cd frontend && npm run dev",
+    "dev:server": "cd backend && uvicorn app.main:app --reload --port 8000",
+    "install:all": "cd frontend && npm install && cd ../backend && pip install -r requirements.txt && playwright install chromium",
+    "session:init": "cd backend && python init_session.py"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"
