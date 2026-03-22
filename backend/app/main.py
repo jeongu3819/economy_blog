@@ -1,100 +1,31 @@
-"""
-FastAPI 메인 애플리케이션
-기존 server/server.js 의 Python/FastAPI 포팅
-"""
-
-import asyncio
-from datetime import datetime
-from contextlib import asynccontextmanager
-
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse, JSONResponse
 
-from app.api.routes.stock import router as stock_router
-from app.core.logger import log_manager
-from app.core.config import settings
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """앱 시작/종료 시 실행"""
-    print("")
-    print("--------------------------------------------------")
-    print("        StockBlog AI Server is Running!          ")
-    print("--------------------------------------------------")
-    print(f"   Local:     http://localhost:{settings.BACKEND_PORT}                ")
-    print("   API Docs:  /docs                               ")
-    print("--------------------------------------------------")
-    print("")
-    yield
-
+from app.routers import issues, keywords, drafts, prompts
+from app.utils.response import api_response
 
 app = FastAPI(
-    title="StockBlog AI",
-    description="주식 분석 & 자동 블로깅 플랫폼 — Backend API",
-    version="2.0.0",
-    lifespan=lifespan,
+    title="Economy Blog Platform",
+    description="주간 이슈 수집 → 키워드 랭킹 → 블로그 초안 생성 플랫폼",
+    version="1.0.0",
 )
 
-# CORS: 프론트엔드에서 접근 허용
+# CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# ── 라우트 등록 ──
-app.include_router(stock_router)
+# Routers
+app.include_router(issues.router)
+app.include_router(keywords.router)
+app.include_router(drafts.router)
+app.include_router(prompts.router)
 
 
-# ── Health Check ──
 @app.get("/api/health")
-async def health_check():
-    return {
-        "status": "ok",
-        "timestamp": datetime.now().isoformat(),
-        "version": "2.0.0",
-    }
-
-
-# ── SSE 로그 스트림 ──
-@app.get("/api/logs")
-async def log_stream():
-    """실시간 로그 SSE 스트림"""
-    queue = log_manager.add_client()
-
-    async def event_generator():
-        try:
-            import json
-
-            # 초기 연결 메시지
-            data = json.dumps(
-                {"message": "로그 스트림 연결됨", "type": "system"},
-                ensure_ascii=False,
-            )
-            yield f"data: {data}\n\n"
-
-            while True:
-                try:
-                    msg = await asyncio.wait_for(queue.get(), timeout=30)
-                    yield msg
-                except asyncio.TimeoutError:
-                    # keepalive
-                    yield ": keepalive\n\n"
-        except asyncio.CancelledError:
-            pass
-        finally:
-            log_manager.remove_client(queue)
-
-    return StreamingResponse(
-        event_generator(),
-        media_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "Connection": "keep-alive",
-            "Access-Control-Allow-Origin": "*",
-        },
-    )
+async def health():
+    return api_response(data={"status": "ok", "service": "Economy Blog Platform"})
