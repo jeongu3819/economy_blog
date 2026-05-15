@@ -30,6 +30,9 @@ function Sidebar(): React.JSX.Element {
         <NavLink to="/drafts" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
           📝 저장된 초안
         </NavLink>
+        <NavLink to="/blog-editor" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+          ✍️ 블로그 편집기
+        </NavLink>
       </nav>
 
       <div className="sidebar-section-title">도움말</div>
