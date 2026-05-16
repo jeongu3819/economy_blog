@@ -19,7 +19,10 @@ export default function BlogPreview({ parsed, rules }: BlogPreviewProps): React.
   return (
     <div className="blog-editor-card">
       <h2 className="blog-editor-card-title">3. 미리보기</h2>
-      <div className="blog-preview">
+      <p className="blog-editor-card-hint">
+        HTML 형식 복사가 정상 적용되지 않으면, 오른쪽 미리보기 영역을 마우스로 드래그해서 직접 복사한 뒤 네이버 블로그에 붙여넣으세요.
+      </p>
+      <div id="blog-preview-copy-area" className="blog-preview">
         {parsed.selectedTitle && (
           <h1 className="blog-preview-title">{parsed.selectedTitle}</h1>
         )}

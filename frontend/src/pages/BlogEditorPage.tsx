@@ -212,8 +212,8 @@ export default function BlogEditorPage(): React.JSX.Element {
           <div className="blog-editor-card">
             <h2 className="blog-editor-card-title">4. 복사</h2>
             <p className="blog-editor-card-hint">
-              네이버 블로그에는 <strong>HTML 복사</strong> 후 본문 영역에 붙여넣으세요. CSS class가
-              유지되지 않아도 inline style로 색상이 보존됩니다.
+              네이버 블로그에 붙여넣을 때는 <strong>HTML 형식 복사</strong> 버튼을 사용하세요.
+              코드가 그대로 붙으면 브라우저가 HTML 복사를 지원하지 않는 상황이므로 <strong>미리보기 그대로 복사</strong>를 사용하거나, 미리보기 영역을 직접 드래그해서 복사하세요.
             </p>
             <CopyButtons
               htmlContent={htmlContent}
