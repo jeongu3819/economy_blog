@@ -4,6 +4,7 @@ interface BlogInputBoxProps {
   onParse: () => void
   onClear: () => void
   onLoadSample: () => void
+  parseMessage?: { text: string; ok: boolean } | null
 }
 
 export default function BlogInputBox({
@@ -12,6 +13,7 @@ export default function BlogInputBox({
   onParse,
   onClear,
   onLoadSample,
+  parseMessage,
 }: BlogInputBoxProps): React.JSX.Element {
   return (
     <div className="blog-editor-card">
@@ -37,6 +39,18 @@ export default function BlogInputBox({
           비우기
         </button>
       </div>
+      {parseMessage && (
+        <p
+          style={{
+            marginTop: '10px',
+            fontSize: '13px',
+            fontWeight: 700,
+            color: parseMessage.ok ? '#047857' : '#b91c1c',
+          }}
+        >
+          {parseMessage.text}
+        </p>
+      )}
     </div>
   )
 }

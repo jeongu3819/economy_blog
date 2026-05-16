@@ -114,6 +114,7 @@ export default function BlogEditorPage(): React.JSX.Element {
   const [rawText, setRawText] = useState('')
   const [parsed, setParsed] = useState<ParsedBlog>(emptyParsed())
   const [rules, setRules] = useState<KeywordRule[]>(() => loadStoredRules())
+  const [parseMessage, setParseMessage] = useState<{ text: string; ok: boolean } | null>(null)
 
   useEffect(() => {
     try {
@@ -124,12 +125,33 @@ export default function BlogEditorPage(): React.JSX.Element {
   }, [rules])
 
   const handleParse = () => {
-    setParsed(parseBlogDraft(rawText))
+    if (!rawText.trim()) {
+      setParseMessage({ text: '텍스트를 먼저 붙여넣어 주세요.', ok: false })
+      return
+    }
+    try {
+      const result = parseBlogDraft(rawText)
+      setParsed(result)
+      const sectionCount = result.bodySections.length
+      const hasAny =
+        result.selectedTitle || sectionCount > 0 || result.selectedIntro || result.hashtags
+      if (hasAny) {
+        setParseMessage({ text: `분석 완료 — 섹션 ${sectionCount}개`, ok: true })
+      } else {
+        setParseMessage({
+          text: '내용을 인식하지 못했습니다. 형식을 확인하거나 샘플을 참고하세요.',
+          ok: false,
+        })
+      }
+    } catch {
+      setParseMessage({ text: '분석 중 오류가 발생했습니다.', ok: false })
+    }
   }
 
   const handleClear = () => {
     setRawText('')
     setParsed(emptyParsed())
+    setParseMessage(null)
   }
 
   const handleLoadSample = () => {
@@ -166,6 +188,7 @@ export default function BlogEditorPage(): React.JSX.Element {
             onParse={handleParse}
             onClear={handleClear}
             onLoadSample={handleLoadSample}
+            parseMessage={parseMessage}
           />
           <KeywordRuleManager
             rules={rules}
