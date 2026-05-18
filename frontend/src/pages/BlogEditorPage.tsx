@@ -16,6 +16,7 @@ import {
   exportToMarkdown,
   exportToPlainText,
 } from '../utils/blogExporter'
+import { generateHashtagBundle } from '../utils/hashtagGenerator'
 import '../styles/BlogEditorPage.css'
 
 const STORAGE_KEY = 'blogEditorKeywordRules'
@@ -121,6 +122,10 @@ export default function BlogEditorPage(): React.JSX.Element {
     }
     try {
       const result = parseBlogDraft(rawText)
+      if (!result.hashtags) {
+        const bundle = generateHashtagBundle(rawText, result, result.blogType)
+        result.hashtags = bundle.applied.join(' ')
+      }
       setParsed(result)
       const sectionCount = result.bodySections.length
       const hasAny =
@@ -155,8 +160,18 @@ export default function BlogEditorPage(): React.JSX.Element {
 
   const handleLoadSample = () => {
     setRawText(SAMPLE_TEXT)
-    setParsed(parseBlogDraft(SAMPLE_TEXT))
+    const sample = parseBlogDraft(SAMPLE_TEXT)
+    if (!sample.hashtags) {
+      const bundle = generateHashtagBundle(SAMPLE_TEXT, sample, sample.blogType)
+      sample.hashtags = bundle.applied.join(' ')
+    }
+    setParsed(sample)
   }
+
+  const hashtagBundle = useMemo(
+    () => generateHashtagBundle(rawText, parsed, parsed.blogType),
+    [rawText, parsed],
+  )
 
   const effectiveRules = useMemo(
     () => getKeywordRulesByBlogType(parsed.blogType, rules),
@@ -206,7 +221,11 @@ export default function BlogEditorPage(): React.JSX.Element {
 
         <div className="blog-editor-column">
           {hasContent ? (
-            <BlogSectionEditor parsed={parsed} onChange={setParsed} />
+            <BlogSectionEditor
+              parsed={parsed}
+              onChange={setParsed}
+              suggestedHashtags={hashtagBundle.suggested}
+            />
           ) : (
             <div className="blog-editor-card blog-editor-empty">
               왼쪽에 원문을 붙여넣고 <strong>자동 분석</strong>을 누르면 여기에 편집기가 나타납니다.

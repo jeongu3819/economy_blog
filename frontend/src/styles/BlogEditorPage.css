@@ -663,6 +663,45 @@
   border-radius: 6px;
 }
 
+/* ── Suggested hashtag chips ─────────────────────────────────────────── */
+
+.hashtag-suggested {
+  margin-top: 10px;
+}
+
+.hashtag-suggested-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #6b7280;
+  margin-bottom: 6px;
+  letter-spacing: 0.04em;
+}
+
+.hashtag-suggested-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.hashtag-chip {
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.hashtag-chip:hover {
+  background: #1d4ed8;
+  color: #ffffff;
+  border-color: #1d4ed8;
+}
+
 @media (max-width: 1200px) {
   .blog-editor-layout {
     grid-template-columns: 1fr;

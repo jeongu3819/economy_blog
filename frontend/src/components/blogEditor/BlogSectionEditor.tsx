@@ -3,6 +3,7 @@ import { ParsedBlog, BodySection, ContentBlock } from '../../utils/blogParser'
 interface BlogSectionEditorProps {
   parsed: ParsedBlog
   onChange: (next: ParsedBlog) => void
+  suggestedHashtags?: string[]
 }
 
 type SectionPath =
@@ -162,8 +163,22 @@ function SectionBlock({
 export default function BlogSectionEditor({
   parsed,
   onChange,
+  suggestedHashtags = [],
 }: BlogSectionEditorProps): React.JSX.Element {
   const update = (patch: Partial<ParsedBlog>) => onChange({ ...parsed, ...patch })
+
+  const appendHashtag = (tag: string) => {
+    const current = (parsed.hashtags || '').trim()
+    const existing = new Set(
+      current
+        .split(/\s+/)
+        .map((t) => t.toLowerCase())
+        .filter(Boolean),
+    )
+    if (existing.has(tag.toLowerCase())) return
+    const next = current ? `${current} ${tag}` : tag
+    update({ hashtags: next })
+  }
 
   const setSections = (next: BodySection[]) => update({ bodySections: next })
 
@@ -356,11 +371,34 @@ export default function BlogSectionEditor({
 
       <div className="blog-editor-field">
         <label className="blog-editor-label">해시태그</label>
+        <p className="blog-editor-card-hint">
+          해시태그는 제목, 소제목, 본문에서 실제로 언급된 핵심 키워드를 우선 추출합니다.
+          부족한 경우에만 글 유형별 추천 태그를 보충합니다.
+          검색 노출을 위해 10~18개 정도를 권장합니다.
+        </p>
         <textarea
           className="blog-section-textarea"
           value={parsed.hashtags}
           onChange={(e) => update({ hashtags: e.target.value })}
         />
+        {suggestedHashtags.length > 0 && (
+          <div className="hashtag-suggested">
+            <span className="hashtag-suggested-label">추천 태그</span>
+            <div className="hashtag-suggested-chips">
+              {suggestedHashtags.map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  className="hashtag-chip"
+                  onClick={() => appendHashtag(tag)}
+                  title="클릭하면 적용 태그에 추가됩니다"
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
