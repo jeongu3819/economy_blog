@@ -451,6 +451,218 @@
   word-break: break-word;
 }
 
+/* ── Subsection / content-block rendering (shared) ───────────────────── */
+
+.blog-preview-subsection {
+  margin-top: 16px;
+}
+
+.blog-preview-subsection-title {
+  font-size: 18px;
+  font-weight: 800;
+  margin: 18px 0 10px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: #f9fafb;
+  color: #111827;
+  border-left: 4px solid #9ca3af;
+}
+
+.blog-preview-ordered-list {
+  margin: 12px 0 18px 22px;
+  padding: 0;
+  color: #374151;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+.blog-preview-ordered-list li {
+  margin: 6px 0;
+}
+
+.blog-preview-quote {
+  margin: 18px 0;
+  background: #f8fafc;
+  border-left: 6px solid #3b82f6;
+  border-radius: 16px;
+  padding: 16px 18px;
+  color: #0f172a;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.75;
+}
+
+/* ── Section-editor sub-section styling ──────────────────────────────── */
+
+.blog-editor-subsection-block {
+  margin-left: 18px;
+  background: #ffffff;
+  border-left: 4px solid #c7d2fe;
+}
+
+.blog-editor-list-row {
+  align-items: flex-start;
+}
+
+.blog-editor-list-edit,
+.blog-editor-quote-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.blog-editor-block-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 800;
+  color: #4b5563;
+  background: #f3f4f6;
+  border-radius: 6px;
+  padding: 2px 8px;
+  align-self: flex-start;
+  letter-spacing: 0.04em;
+}
+
+.blog-editor-list-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px;
+  align-items: center;
+}
+
+.blog-editor-list-index {
+  font-weight: 700;
+  color: #6b7280;
+  min-width: 24px;
+}
+
+/* ── project-introduction preview ────────────────────────────────────── */
+
+.blog-preview-project-introduction .blog-preview-title {
+  font-size: 30px;
+  line-height: 1.35;
+  font-weight: 900;
+  color: #0f172a;
+  border-left: 8px solid #3b82f6;
+  padding-left: 14px;
+  margin-bottom: 14px;
+}
+
+.blog-preview-project-introduction .blog-preview-intro {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 18px;
+  padding: 18px;
+  color: #1e3a8a;
+  font-weight: 500;
+  line-height: 1.85;
+}
+
+.blog-preview-project-introduction .blog-preview-subsection-title {
+  background: #eff6ff;
+  color: #1e3a8a;
+  border-left: 4px solid #3b82f6;
+}
+
+/* Project-type section title colors */
+
+.section-problem .blog-preview-section-title {
+  background: #f5f3ff;
+  color: #6d28d9;
+}
+
+.section-structure .blog-preview-section-title {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.section-ui .blog-preview-section-title {
+  background: #ecfeff;
+  color: #0e7490;
+}
+
+.section-tech .blog-preview-section-title {
+  background: #f8fafc;
+  color: #334155;
+}
+
+.section-core .blog-preview-section-title {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.section-project-default .blog-preview-section-title {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.blog-preview-project-introduction .section-project-final .blog-preview-section-title,
+.section-project-final .blog-preview-section-title {
+  background: #0f172a;
+  color: #ffffff;
+}
+
+/* Project-type paragraph emphasis */
+
+.paragraph-project-core {
+  background: #fff7ed;
+  border-left: 5px solid #f97316;
+  padding: 13px 15px;
+  border-radius: 14px;
+  color: #7c2d12;
+}
+
+.paragraph-benefit {
+  background: #f0fdf4;
+  border-left: 5px solid #22c55e;
+  padding: 13px 15px;
+  border-radius: 14px;
+  color: #14532d;
+}
+
+.paragraph-caution {
+  background: #fffbeb;
+  border-left: 5px solid #f59e0b;
+  padding: 13px 15px;
+  border-radius: 14px;
+  color: #78350f;
+}
+
+/* Project-type keyword highlights */
+
+.highlight-project-core {
+  background: #ffedd5;
+  color: #c2410c;
+  font-weight: 800;
+  padding: 2px 5px;
+  border-radius: 6px;
+}
+
+.highlight-tech {
+  background: #e0f2fe;
+  color: #0369a1;
+  font-weight: 800;
+  padding: 2px 5px;
+  border-radius: 6px;
+}
+
+.highlight-benefit {
+  background: #dcfce7;
+  color: #166534;
+  font-weight: 800;
+  padding: 2px 5px;
+  border-radius: 6px;
+}
+
+.highlight-caution {
+  background: #fef3c7;
+  color: #92400e;
+  font-weight: 800;
+  padding: 2px 5px;
+  border-radius: 6px;
+}
+
 @media (max-width: 1200px) {
   .blog-editor-layout {
     grid-template-columns: 1fr;

@@ -1,8 +1,162 @@
-import { ParsedBlog, BodySection } from '../../utils/blogParser'
+import { ParsedBlog, BodySection, ContentBlock } from '../../utils/blogParser'
 
 interface BlogSectionEditorProps {
   parsed: ParsedBlog
   onChange: (next: ParsedBlog) => void
+}
+
+type SectionPath =
+  | { kind: 'top'; topId: string }
+  | { kind: 'child'; topId: string; childId: string }
+
+function updateSectionByPath(
+  sections: BodySection[],
+  path: SectionPath,
+  patch: (s: BodySection) => BodySection,
+): BodySection[] {
+  return sections.map((s) => {
+    if (s.id !== path.topId) return s
+    if (path.kind === 'top') return patch(s)
+    return {
+      ...s,
+      children: s.children.map((c) => (c.id === path.childId ? patch(c) : c)),
+    }
+  })
+}
+
+function removeSectionByPath(sections: BodySection[], path: SectionPath): BodySection[] {
+  if (path.kind === 'top') return sections.filter((s) => s.id !== path.topId)
+  return sections.map((s) =>
+    s.id === path.topId
+      ? { ...s, children: s.children.filter((c) => c.id !== path.childId) }
+      : s,
+  )
+}
+
+function paragraphSummary(block: ContentBlock): string {
+  if (typeof block === 'string') return block
+  if (block.type === 'ordered-list') return block.items.join('\n')
+  return block.content
+}
+
+interface SectionBlockProps {
+  section: BodySection
+  path: SectionPath
+  isChild: boolean
+  onHeadingChange: (path: SectionPath, value: string) => void
+  onParagraphChange: (path: SectionPath, idx: number, value: string) => void
+  onListItemChange: (path: SectionPath, paraIdx: number, itemIdx: number, value: string) => void
+  onAddParagraph: (path: SectionPath) => void
+  onRemoveParagraph: (path: SectionPath, idx: number) => void
+  onRemoveSection: (path: SectionPath) => void
+  children?: React.ReactNode
+}
+
+function SectionBlock({
+  section,
+  path,
+  isChild,
+  onHeadingChange,
+  onParagraphChange,
+  onListItemChange,
+  onAddParagraph,
+  onRemoveParagraph,
+  onRemoveSection,
+  children,
+}: SectionBlockProps): React.JSX.Element {
+  return (
+    <div
+      className={`blog-editor-section-block${isChild ? ' blog-editor-subsection-block' : ''}`}
+    >
+      <div className="blog-editor-section-header">
+        <input
+          className="blog-section-input"
+          value={section.heading}
+          onChange={(e) => onHeadingChange(path, e.target.value)}
+          placeholder={isChild ? '하위 섹션 제목' : '섹션 제목'}
+        />
+        <button
+          className="blog-editor-button danger"
+          onClick={() => onRemoveSection(path)}
+          title={isChild ? '하위 섹션 삭제' : '섹션 삭제'}
+        >
+          {isChild ? '하위 삭제' : '섹션 삭제'}
+        </button>
+      </div>
+      {section.paragraphs.map((block, idx) => {
+        if (typeof block === 'string') {
+          return (
+            <div key={idx} className="blog-editor-paragraph-row">
+              <textarea
+                className="blog-section-textarea"
+                value={block}
+                onChange={(e) => onParagraphChange(path, idx, e.target.value)}
+              />
+              <button
+                className="blog-editor-button danger"
+                onClick={() => onRemoveParagraph(path, idx)}
+              >
+                ×
+              </button>
+            </div>
+          )
+        }
+        if (block.type === 'ordered-list') {
+          return (
+            <div key={idx} className="blog-editor-paragraph-row blog-editor-list-row">
+              <div className="blog-editor-list-edit">
+                <span className="blog-editor-block-tag">번호 목록</span>
+                {block.items.map((item, itemIdx) => (
+                  <div key={itemIdx} className="blog-editor-list-item">
+                    <span className="blog-editor-list-index">{itemIdx + 1}.</span>
+                    <input
+                      className="blog-editor-input"
+                      value={item}
+                      onChange={(e) =>
+                        onListItemChange(path, idx, itemIdx, e.target.value)
+                      }
+                    />
+                  </div>
+                ))}
+              </div>
+              <button
+                className="blog-editor-button danger"
+                onClick={() => onRemoveParagraph(path, idx)}
+              >
+                ×
+              </button>
+            </div>
+          )
+        }
+        // quote
+        return (
+          <div key={idx} className="blog-editor-paragraph-row">
+            <div className="blog-editor-quote-edit">
+              <span className="blog-editor-block-tag">인용</span>
+              <textarea
+                className="blog-section-textarea"
+                value={block.content}
+                onChange={(e) => onParagraphChange(path, idx, e.target.value)}
+              />
+            </div>
+            <button
+              className="blog-editor-button danger"
+              onClick={() => onRemoveParagraph(path, idx)}
+            >
+              ×
+            </button>
+          </div>
+        )
+      })}
+      <button
+        className="blog-editor-button secondary"
+        onClick={() => onAddParagraph(path)}
+      >
+        + 문단 추가
+      </button>
+      {children}
+    </div>
+  )
 }
 
 export default function BlogSectionEditor({
@@ -11,46 +165,82 @@ export default function BlogSectionEditor({
 }: BlogSectionEditorProps): React.JSX.Element {
   const update = (patch: Partial<ParsedBlog>) => onChange({ ...parsed, ...patch })
 
-  const updateSection = (id: string, patch: Partial<BodySection>) => {
-    update({
-      bodySections: parsed.bodySections.map((s) => (s.id === id ? { ...s, ...patch } : s)),
-    })
+  const setSections = (next: BodySection[]) => update({ bodySections: next })
+
+  const handleHeadingChange = (path: SectionPath, value: string) => {
+    setSections(
+      updateSectionByPath(parsed.bodySections, path, (s) => ({ ...s, heading: value })),
+    )
   }
 
-  const updateParagraph = (sectionId: string, idx: number, value: string) => {
-    update({
-      bodySections: parsed.bodySections.map((s) =>
-        s.id === sectionId
-          ? {
-              ...s,
-              paragraphs: s.paragraphs.map((p, i) => (i === idx ? value : p)),
-            }
-          : s,
-      ),
-    })
+  const handleParagraphChange = (path: SectionPath, idx: number, value: string) => {
+    setSections(
+      updateSectionByPath(parsed.bodySections, path, (s) => ({
+        ...s,
+        paragraphs: s.paragraphs.map((p, i) => {
+          if (i !== idx) return p
+          if (typeof p === 'string') return value
+          if (p.type === 'quote') return { ...p, content: value }
+          return p
+        }),
+      })),
+    )
   }
 
-  const addParagraph = (sectionId: string) => {
-    update({
-      bodySections: parsed.bodySections.map((s) =>
-        s.id === sectionId ? { ...s, paragraphs: [...s.paragraphs, ''] } : s,
-      ),
-    })
+  const handleListItemChange = (
+    path: SectionPath,
+    paraIdx: number,
+    itemIdx: number,
+    value: string,
+  ) => {
+    setSections(
+      updateSectionByPath(parsed.bodySections, path, (s) => ({
+        ...s,
+        paragraphs: s.paragraphs.map((p, i) => {
+          if (i !== paraIdx) return p
+          if (typeof p === 'string' || p.type !== 'ordered-list') return p
+          return {
+            ...p,
+            items: p.items.map((item, j) => (j === itemIdx ? value : item)),
+          }
+        }),
+      })),
+    )
   }
 
-  const removeParagraph = (sectionId: string, idx: number) => {
-    update({
-      bodySections: parsed.bodySections.map((s) =>
-        s.id === sectionId
-          ? { ...s, paragraphs: s.paragraphs.filter((_, i) => i !== idx) }
-          : s,
-      ),
-    })
+  const handleAddParagraph = (path: SectionPath) => {
+    setSections(
+      updateSectionByPath(parsed.bodySections, path, (s) => ({
+        ...s,
+        paragraphs: [...s.paragraphs, ''],
+      })),
+    )
   }
 
-  const removeSection = (sectionId: string) => {
-    update({ bodySections: parsed.bodySections.filter((s) => s.id !== sectionId) })
+  const handleRemoveParagraph = (path: SectionPath, idx: number) => {
+    setSections(
+      updateSectionByPath(parsed.bodySections, path, (s) => ({
+        ...s,
+        paragraphs: s.paragraphs.filter((_, i) => i !== idx),
+      })),
+    )
   }
+
+  const handleRemoveSection = (path: SectionPath) => {
+    setSections(removeSectionByPath(parsed.bodySections, path))
+  }
+
+  const renderProps = {
+    onHeadingChange: handleHeadingChange,
+    onParagraphChange: handleParagraphChange,
+    onListItemChange: handleListItemChange,
+    onAddParagraph: handleAddParagraph,
+    onRemoveParagraph: handleRemoveParagraph,
+    onRemoveSection: handleRemoveSection,
+  }
+
+  // Suppress unused warning for utility function in narrow case
+  void paragraphSummary
 
   return (
     <div className="blog-editor-card">
@@ -124,44 +314,35 @@ export default function BlogSectionEditor({
         />
       </div>
 
-      {parsed.bodySections.map((section) => (
-        <div key={section.id} className="blog-editor-section-block">
-          <div className="blog-editor-section-header">
-            <input
-              className="blog-section-input"
-              value={section.heading}
-              onChange={(e) => updateSection(section.id, { heading: e.target.value })}
-            />
-            <button
-              className="blog-editor-button danger"
-              onClick={() => removeSection(section.id)}
-              title="섹션 삭제"
-            >
-              섹션 삭제
-            </button>
-          </div>
-          {section.paragraphs.map((paragraph, idx) => (
-            <div key={idx} className="blog-editor-paragraph-row">
-              <textarea
-                className="blog-section-textarea"
-                value={paragraph}
-                onChange={(e) => updateParagraph(section.id, idx, e.target.value)}
-              />
-              <button
-                className="blog-editor-button danger"
-                onClick={() => removeParagraph(section.id, idx)}
-              >
-                ×
-              </button>
-            </div>
-          ))}
-          <button
-            className="blog-editor-button secondary"
-            onClick={() => addParagraph(section.id)}
-          >
-            + 문단 추가
-          </button>
+      {parsed.introQuote && (
+        <div className="blog-editor-field">
+          <label className="blog-editor-label">도입부 인용문</label>
+          <textarea
+            className="blog-section-textarea"
+            value={parsed.introQuote}
+            onChange={(e) => update({ introQuote: e.target.value })}
+          />
         </div>
+      )}
+
+      {parsed.bodySections.map((section) => (
+        <SectionBlock
+          key={section.id}
+          section={section}
+          path={{ kind: 'top', topId: section.id }}
+          isChild={false}
+          {...renderProps}
+        >
+          {section.children.map((child) => (
+            <SectionBlock
+              key={child.id}
+              section={child}
+              path={{ kind: 'child', topId: section.id, childId: child.id }}
+              isChild={true}
+              {...renderProps}
+            />
+          ))}
+        </SectionBlock>
       ))}
 
       <div className="blog-editor-field">

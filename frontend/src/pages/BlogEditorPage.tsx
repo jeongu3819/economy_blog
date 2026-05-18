@@ -5,8 +5,12 @@ import BlogPreview from '../components/blogEditor/BlogPreview'
 import BlogTemplatePreview from '../components/blogEditor/BlogTemplatePreview'
 import KeywordRuleManager from '../components/blogEditor/KeywordRuleManager'
 import CopyButtons from '../components/blogEditor/CopyButtons'
-import { ParsedBlog, parseBlogDraft } from '../utils/blogParser'
-import { DEFAULT_KEYWORD_RULES, KeywordRule } from '../utils/keywordHighlighter'
+import { ParsedBlog, emptyParsed, parseBlogDraft } from '../utils/blogParser'
+import {
+  DEFAULT_KEYWORD_RULES,
+  KeywordRule,
+  getKeywordRulesByBlogType,
+} from '../utils/keywordHighlighter'
 import {
   exportToHtml,
   exportToMarkdown,
@@ -96,20 +100,6 @@ function loadStoredRules(): KeywordRule[] {
   }
 }
 
-function emptyParsed(): ParsedBlog {
-  return {
-    titleCandidates: [],
-    selectedTitle: '',
-    introCandidates: [],
-    selectedIntro: '',
-    analysisDate: '',
-    bodyTitle: '',
-    bodySections: [],
-    disclaimer: '',
-    hashtags: '',
-  }
-}
-
 export default function BlogEditorPage(): React.JSX.Element {
   const [rawText, setRawText] = useState('')
   const [parsed, setParsed] = useState<ParsedBlog>(emptyParsed())
@@ -136,7 +126,16 @@ export default function BlogEditorPage(): React.JSX.Element {
       const hasAny =
         result.selectedTitle || sectionCount > 0 || result.selectedIntro || result.hashtags
       if (hasAny) {
-        setParseMessage({ text: `분석 완료 — 섹션 ${sectionCount}개`, ok: true })
+        const typeLabel =
+          result.blogType === 'project-introduction'
+            ? '프로젝트 소개형'
+            : result.blogType === 'stock-analysis'
+              ? '주식 분석형'
+              : '일반 블로그형'
+        setParseMessage({
+          text: `분석 완료 — ${typeLabel} · 섹션 ${sectionCount}개`,
+          ok: true,
+        })
       } else {
         setParseMessage({
           text: '내용을 인식하지 못했습니다. 형식을 확인하거나 샘플을 참고하세요.',
@@ -159,7 +158,15 @@ export default function BlogEditorPage(): React.JSX.Element {
     setParsed(parseBlogDraft(SAMPLE_TEXT))
   }
 
-  const htmlContent = useMemo(() => exportToHtml(parsed, rules), [parsed, rules])
+  const effectiveRules = useMemo(
+    () => getKeywordRulesByBlogType(parsed.blogType, rules),
+    [parsed.blogType, rules],
+  )
+
+  const htmlContent = useMemo(
+    () => exportToHtml(parsed, effectiveRules),
+    [parsed, effectiveRules],
+  )
   const markdownContent = useMemo(() => exportToMarkdown(parsed), [parsed])
   const textContent = useMemo(() => exportToPlainText(parsed), [parsed])
 
@@ -208,7 +215,7 @@ export default function BlogEditorPage(): React.JSX.Element {
         </div>
 
         <div className="blog-editor-column">
-          <BlogPreview parsed={parsed} rules={rules} />
+          <BlogPreview parsed={parsed} rules={effectiveRules} />
           <div className="blog-editor-card">
             <h2 className="blog-editor-card-title">4. 복사</h2>
             <p className="blog-editor-card-hint">

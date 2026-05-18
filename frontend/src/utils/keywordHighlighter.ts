@@ -1,11 +1,12 @@
 import { HighlightClassName, HIGHLIGHT_INLINE_STYLES } from './blogTheme'
+import { BlogType } from './blogTypeDetector'
 
 export interface KeywordRule {
   keyword: string
   className: HighlightClassName
 }
 
-export const DEFAULT_KEYWORD_RULES: KeywordRule[] = [
+export const STOCK_KEYWORD_RULES: KeywordRule[] = [
   // 강한 긍정
   { keyword: '급등', className: 'highlight-strong-positive' },
   { keyword: '순이익 급증', className: 'highlight-strong-positive' },
@@ -64,7 +65,63 @@ export const DEFAULT_KEYWORD_RULES: KeywordRule[] = [
   { keyword: '단정하기보다는', className: 'highlight-neutral' },
 ]
 
-const RISK_TRIGGERS = [
+export const PROJECT_KEYWORD_RULES: KeywordRule[] = [
+  // 핵심 컨셉
+  { keyword: '편집 자동화', className: 'highlight-project-core' },
+  { keyword: '블로그 초안 생성', className: 'highlight-project-core' },
+  { keyword: '초안 생성', className: 'highlight-project-core' },
+  { keyword: '자동화', className: 'highlight-project-core' },
+  { keyword: '미리보기', className: 'highlight-project-core' },
+  { keyword: '자동 분석', className: 'highlight-project-core' },
+
+  // 기술 스택
+  { keyword: 'FastAPI', className: 'highlight-tech' },
+  { keyword: 'MySQL', className: 'highlight-tech' },
+  { keyword: 'React', className: 'highlight-tech' },
+  { keyword: 'Vite', className: 'highlight-tech' },
+  { keyword: '프론트엔드', className: 'highlight-tech' },
+  { keyword: '백엔드', className: 'highlight-tech' },
+  { keyword: '데이터베이스', className: 'highlight-tech' },
+  { keyword: 'API', className: 'highlight-tech' },
+
+  // 장점 / 가치
+  { keyword: '시간을 줄이는', className: 'highlight-benefit' },
+  { keyword: '유지보수가 쉬운', className: 'highlight-benefit' },
+  { keyword: '확장할 수 있습니다', className: 'highlight-benefit' },
+  { keyword: '유용합니다', className: 'highlight-benefit' },
+  { keyword: '가장 큰 장점', className: 'highlight-benefit' },
+  { keyword: '반복되는 작업을 줄이는', className: 'highlight-benefit' },
+  { keyword: '더 빠르게 판단하고 편집', className: 'highlight-benefit' },
+
+  // 주의 / 한계
+  { keyword: '완성형 서비스라기보다는', className: 'highlight-caution' },
+  { keyword: '실험적인 자동화 도구', className: 'highlight-caution' },
+  { keyword: 'API 토큰', className: 'highlight-caution' },
+  { keyword: '토큰 비용', className: 'highlight-caution' },
+  { keyword: '계속 소모하지 않아도', className: 'highlight-caution' },
+]
+
+export const GENERAL_KEYWORD_RULES: KeywordRule[] = []
+
+// Backwards compatibility: previous code imported DEFAULT_KEYWORD_RULES.
+export const DEFAULT_KEYWORD_RULES: KeywordRule[] = STOCK_KEYWORD_RULES
+
+export function getKeywordRulesByBlogType(
+  blogType: BlogType,
+  userRules: KeywordRule[] = [],
+): KeywordRule[] {
+  const baseRules =
+    blogType === 'project-introduction'
+      ? PROJECT_KEYWORD_RULES
+      : blogType === 'stock-analysis'
+        ? STOCK_KEYWORD_RULES
+        : GENERAL_KEYWORD_RULES
+  return [...baseRules, ...userRules]
+}
+
+// ─── Paragraph triggers ────────────────────────────────────────────────────────
+
+const STOCK_RISK_TRIGGERS = [
   '리스크',
   '희석',
   '전환사채',
@@ -78,7 +135,7 @@ const RISK_TRIGGERS = [
   '역분할',
 ]
 
-const POSITIVE_TRIGGERS = [
+const STOCK_POSITIVE_TRIGGERS = [
   '긍정',
   '호재',
   '순이익 증가',
@@ -91,7 +148,7 @@ const POSITIVE_TRIGGERS = [
   '블록체인',
 ]
 
-const NEUTRAL_TRIGGERS = [
+const STOCK_NEUTRAL_TRIGGERS = [
   '기술 발표',
   '보도자료',
   '기술 PR',
@@ -100,14 +157,66 @@ const NEUTRAL_TRIGGERS = [
   '단정하기보다는',
 ]
 
-export type ParagraphClass = 'paragraph-risk' | 'paragraph-positive' | 'paragraph-neutral' | ''
+const PROJECT_CORE_PATTERNS = [
+  '핵심은',
+  '핵심 흐름',
+  '가장 중요하게 생각한 부분',
+  '이 플랫폼의 핵심',
+  '즉, 핵심 흐름은',
+]
 
-export function getParagraphClass(text: string, _rules?: KeywordRule[]): ParagraphClass {
+const PROJECT_BENEFIT_PATTERNS = [
+  '시간을 줄이는',
+  '훨씬 직관적으로',
+  '유용합니다',
+  '도움이 됩니다',
+  '장점입니다',
+  '쉽게 확장',
+  '유지보수가 쉬운',
+]
+
+const PROJECT_CAUTION_PATTERNS = [
+  '완성형 서비스라기보다는',
+  '실험적인 자동화 도구',
+  '비용이 발생합니다',
+  '토큰 비용',
+  '복잡한 구조보다는',
+]
+
+export type ParagraphClass =
+  | 'paragraph-risk'
+  | 'paragraph-positive'
+  | 'paragraph-neutral'
+  | 'paragraph-project-core'
+  | 'paragraph-benefit'
+  | 'paragraph-caution'
+  | ''
+
+export function getStockParagraphClass(text: string): ParagraphClass {
   if (!text) return ''
-  if (RISK_TRIGGERS.some((t) => text.includes(t))) return 'paragraph-risk'
-  if (POSITIVE_TRIGGERS.some((t) => text.includes(t))) return 'paragraph-positive'
-  if (NEUTRAL_TRIGGERS.some((t) => text.includes(t))) return 'paragraph-neutral'
+  if (STOCK_RISK_TRIGGERS.some((t) => text.includes(t))) return 'paragraph-risk'
+  if (STOCK_POSITIVE_TRIGGERS.some((t) => text.includes(t))) return 'paragraph-positive'
+  if (STOCK_NEUTRAL_TRIGGERS.some((t) => text.includes(t))) return 'paragraph-neutral'
   return ''
+}
+
+export function getProjectParagraphClass(text: string): ParagraphClass {
+  if (!text) return ''
+  if (PROJECT_CORE_PATTERNS.some((k) => text.includes(k))) return 'paragraph-project-core'
+  if (PROJECT_BENEFIT_PATTERNS.some((k) => text.includes(k))) return 'paragraph-benefit'
+  if (PROJECT_CAUTION_PATTERNS.some((k) => text.includes(k))) return 'paragraph-caution'
+  return ''
+}
+
+export function getParagraphClassByBlogType(text: string, blogType: BlogType): ParagraphClass {
+  if (blogType === 'project-introduction') return getProjectParagraphClass(text)
+  if (blogType === 'stock-analysis') return getStockParagraphClass(text)
+  return ''
+}
+
+// Backwards-compat default (stock).
+export function getParagraphClass(text: string, _rules?: KeywordRule[]): ParagraphClass {
+  return getStockParagraphClass(text)
 }
 
 export function escapeHtml(text: string): string {
@@ -132,7 +241,6 @@ function compileRules(rules: KeywordRule[]): CompiledRules {
   const valid = rules.filter((r) => r.keyword && r.keyword.length > 0)
   if (valid.length === 0) return { regex: null, byKeyword: new Map() }
 
-  // Sort by length desc so longer matches win when patterns overlap
   const sorted = [...valid].sort((a, b) => b.keyword.length - a.keyword.length)
   const byKeyword = new Map<string, KeywordRule>()
   for (const rule of sorted) {
@@ -142,10 +250,6 @@ function compileRules(rules: KeywordRule[]): CompiledRules {
   return { regex: new RegExp(`(${pattern})`, 'g'), byKeyword }
 }
 
-/**
- * Returns escaped HTML where matched keywords are wrapped in <span class="...">.
- * Safe for dangerouslySetInnerHTML.
- */
 export function highlightTextHtml(text: string, rules: KeywordRule[]): string {
   const escaped = escapeHtml(text)
   const { regex, byKeyword } = compileRules(rules)
@@ -157,10 +261,6 @@ export function highlightTextHtml(text: string, rules: KeywordRule[]): string {
   })
 }
 
-/**
- * Same as highlightTextHtml but emits inline styles instead of class names.
- * Used for HTML export so styling survives paste into Naver blog.
- */
 export function highlightTextInline(text: string, rules: KeywordRule[]): string {
   const escaped = escapeHtml(text)
   const { regex, byKeyword } = compileRules(rules)
