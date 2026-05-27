@@ -7,6 +7,7 @@ import {
   highlightTextInline,
 } from './keywordHighlighter'
 import {
+  BLOG_WRAPPER_INLINE_STYLE,
   DATE_INLINE_STYLE,
   DISCLAIMER_INLINE_STYLE,
   HASHTAG_INLINE_STYLE,
@@ -14,18 +15,36 @@ import {
   ORDERED_LIST_INLINE_STYLE,
   ORDERED_LIST_ITEM_INLINE_STYLE,
   PARAGRAPH_INLINE_STYLES,
+  PARAGRAPH_SOFT_CAUTION_INLINE_STYLE,
+  PARAGRAPH_SOFT_NOTE_INLINE_STYLE,
   QUOTE_INLINE_STYLE,
+  SECTION_TITLE_ACCENT_INLINE_STYLE,
   SECTION_TITLE_INLINE_STYLES,
   SUBSECTION_TITLE_INLINE_STYLES,
   TITLE_INLINE_STYLES,
 } from './blogTheme'
+import {
+  formatTextForMobileCenter,
+  getMobileLineBreakOptions,
+  isClosingSection,
+  shouldUseParagraphBox,
+} from './mobileLineBreaker'
 
-function paragraphStyle(text: string, blogType: BlogType): string {
+export interface ExportHtmlOptions {
+  mobileFormat?: boolean
+  maxCharsPerLine?: number
+}
+
+function paragraphStyle(text: string, blogType: BlogType, sectionHeading: string, indexInSection: number): string {
   const cls = getParagraphClassByBlogType(text, blogType)
-  if (cls && PARAGRAPH_INLINE_STYLES[cls]) {
-    return `${PARAGRAPH_INLINE_STYLES.base}${PARAGRAPH_INLINE_STYLES[cls]}`
+  if (isClosingSection(sectionHeading)) return PARAGRAPH_INLINE_STYLES.base
+  if (!shouldUseParagraphBox(text, sectionHeading, indexInSection)) {
+    return PARAGRAPH_INLINE_STYLES.base
   }
-  return PARAGRAPH_INLINE_STYLES.base
+  if (cls === 'paragraph-risk' || cls === 'paragraph-caution') {
+    return PARAGRAPH_SOFT_CAUTION_INLINE_STYLE
+  }
+  return PARAGRAPH_SOFT_NOTE_INLINE_STYLE
 }
 
 function sectionTitleStyle(type: string): string {
@@ -44,25 +63,60 @@ function introStyle(blogType: BlogType): string {
   return INTRO_INLINE_STYLES[blogType] || INTRO_INLINE_STYLES.base
 }
 
+function applyMobileFormat(
+  text: string,
+  blogType: BlogType,
+  blockType: Parameters<typeof getMobileLineBreakOptions>[1],
+  options: ExportHtmlOptions,
+): string {
+  if (!options.mobileFormat) return text
+  const opts = getMobileLineBreakOptions(blogType, blockType)
+  const max = options.maxCharsPerLine
+    ? Math.min(opts.maxCharsPerLine, options.maxCharsPerLine)
+    : opts.maxCharsPerLine
+  return formatTextForMobileCenter(text, {
+    maxCharsPerLine: max,
+    maxLinesPerParagraph: opts.maxLinesPerParagraph,
+  })
+}
+
+function inlineHighlightWithBreaks(
+  text: string,
+  rules: KeywordRule[],
+): string {
+  const segments = text.split('\n')
+  return segments
+    .map((segment) => highlightTextInline(segment, rules))
+    .join('<br/>')
+}
+
 function renderContentBlock(
   block: ContentBlock,
   rules: KeywordRule[],
   blogType: BlogType,
+  sectionHeading: string,
+  indexInSection: number,
+  options: ExportHtmlOptions,
 ): string {
   if (typeof block === 'string') {
-    return `<p style="${paragraphStyle(block, blogType)}">${highlightTextInline(block, rules)}</p>`
+    const formatted = applyMobileFormat(block, blogType, 'paragraph', options)
+    const html = inlineHighlightWithBreaks(formatted, rules)
+    return `<p style="${paragraphStyle(block, blogType, sectionHeading, indexInSection)}">${html}</p>`
   }
   if (block.type === 'ordered-list') {
     const items = block.items
-      .map(
-        (item) =>
-          `<li style="${ORDERED_LIST_ITEM_INLINE_STYLE}">${highlightTextInline(item, rules)}</li>`,
-      )
+      .map((item) => {
+        const formatted = applyMobileFormat(item, blogType, 'list-item', options)
+        const html = inlineHighlightWithBreaks(formatted, rules)
+        return `<li style="${ORDERED_LIST_ITEM_INLINE_STYLE}">${html}</li>`
+      })
       .join('')
     return `<ol style="${ORDERED_LIST_INLINE_STYLE}">${items}</ol>`
   }
   if (block.type === 'quote') {
-    return `<div style="${QUOTE_INLINE_STYLE}">${highlightTextInline(block.content, rules)}</div>`
+    const formatted = applyMobileFormat(block.content, blogType, 'quote', options)
+    const html = inlineHighlightWithBreaks(formatted, rules)
+    return `<div style="${QUOTE_INLINE_STYLE}">${html}</div>`
   }
   return ''
 }
@@ -71,11 +125,16 @@ function renderSection(
   section: BodySection,
   rules: KeywordRule[],
   blogType: BlogType,
+  options: ExportHtmlOptions,
 ): string {
-  const titleHtml = `<h2 style="${sectionTitleStyle(section.type)}">${escapeHtml(section.heading)}</h2>`
-  const paragraphsHtml = section.paragraphs.map((p) => renderContentBlock(p, rules, blogType)).join('\n')
+  const headingFormatted = applyMobileFormat(section.heading, blogType, 'section-title', options)
+  const headingHtml = escapeHtml(headingFormatted).replace(/\n/g, '<br/>')
+  const titleHtml = `<h2 style="${sectionTitleStyle(section.type)}">${headingHtml}<span style="${SECTION_TITLE_ACCENT_INLINE_STYLE}"></span></h2>`
+  const paragraphsHtml = section.paragraphs
+    .map((p, idx) => renderContentBlock(p, rules, blogType, section.heading, idx, options))
+    .join('\n')
   const childrenHtml = section.children
-    .map((child) => renderSubsection(child, rules, blogType))
+    .map((child) => renderSubsection(child, rules, blogType, options))
     .join('\n')
   const parts = [titleHtml]
   if (paragraphsHtml) parts.push(paragraphsHtml)
@@ -87,47 +146,61 @@ function renderSubsection(
   section: BodySection,
   rules: KeywordRule[],
   blogType: BlogType,
+  options: ExportHtmlOptions,
 ): string {
-  const titleHtml = `<h3 style="${subsectionTitleStyle(blogType)}">${escapeHtml(section.heading)}</h3>`
-  const paragraphsHtml = section.paragraphs.map((p) => renderContentBlock(p, rules, blogType)).join('\n')
+  const headingFormatted = applyMobileFormat(section.heading, blogType, 'subsection-title', options)
+  const headingHtml = escapeHtml(headingFormatted).replace(/\n/g, '<br/>')
+  const titleHtml = `<h3 style="${subsectionTitleStyle(blogType)}">${headingHtml}</h3>`
+  const paragraphsHtml = section.paragraphs
+    .map((p, idx) => renderContentBlock(p, rules, blogType, section.heading, idx, options))
+    .join('\n')
   return paragraphsHtml ? `${titleHtml}\n${paragraphsHtml}` : titleHtml
 }
 
-export function exportToHtml(parsed: ParsedBlog, rules: KeywordRule[]): string {
+export function exportToHtml(
+  parsed: ParsedBlog,
+  rules: KeywordRule[],
+  options: ExportHtmlOptions = { mobileFormat: true },
+): string {
   const blogType = parsed.blogType
   const parts: string[] = []
-  parts.push(
-    '<div class="naver-blog-post" style="font-family:\'Apple SD Gothic Neo\',\'Malgun Gothic\',sans-serif;color:#1f2937;line-height:1.82;">',
-  )
+  parts.push(`<div class="naver-blog-post" style="${BLOG_WRAPPER_INLINE_STYLE}">`)
 
   if (parsed.selectedTitle) {
-    parts.push(`  <h1 style="${titleStyle(blogType)}">${escapeHtml(parsed.selectedTitle)}</h1>`)
+    const formatted = applyMobileFormat(parsed.selectedTitle, blogType, 'title', options)
+    const html = escapeHtml(formatted).replace(/\n/g, '<br/>')
+    parts.push(`  <h1 style="${titleStyle(blogType)}">${html}</h1>`)
   }
   if (parsed.analysisDate) {
     parts.push(`  <p style="${DATE_INLINE_STYLE}">분석 날짜: ${escapeHtml(parsed.analysisDate)}</p>`)
   }
   if (parsed.selectedIntro) {
-    const introHtml = highlightTextInline(parsed.selectedIntro, rules).replace(/\n+/g, '<br/>')
-    parts.push(`  <div style="${introStyle(blogType)}">${introHtml}</div>`)
+    const formatted = applyMobileFormat(parsed.selectedIntro, blogType, 'intro', options)
+    const html = inlineHighlightWithBreaks(formatted, rules)
+    parts.push(`  <div style="${introStyle(blogType)}">${html}</div>`)
   }
   if (parsed.introQuote) {
-    const quoteHtml = highlightTextInline(parsed.introQuote, rules).replace(/\n+/g, '<br/>')
-    parts.push(`  <div style="${QUOTE_INLINE_STYLE}">${quoteHtml}</div>`)
+    const formatted = applyMobileFormat(parsed.introQuote, blogType, 'quote', options)
+    const html = inlineHighlightWithBreaks(formatted, rules)
+    parts.push(`  <div style="${QUOTE_INLINE_STYLE}">${html}</div>`)
   }
 
   for (const section of parsed.bodySections) {
-    parts.push('  ' + renderSection(section, rules, blogType).split('\n').join('\n  '))
+    parts.push('  ' + renderSection(section, rules, blogType, options).split('\n').join('\n  '))
   }
 
   if (parsed.disclaimer) {
-    const text = escapeHtml(parsed.disclaimer).replace(/\n+/g, '<br/>')
+    const formatted = applyMobileFormat(parsed.disclaimer, blogType, 'disclaimer', options)
+    const text = escapeHtml(formatted).replace(/\n/g, '<br/>')
     parts.push(
       `  <div style="${DISCLAIMER_INLINE_STYLE}"><strong>⚠️ 투자 주의문구</strong><br/>${text}</div>`,
     )
   }
 
   if (parsed.hashtags) {
-    parts.push(`  <p style="${HASHTAG_INLINE_STYLE}">${escapeHtml(parsed.hashtags)}</p>`)
+    const formatted = applyMobileFormat(parsed.hashtags, blogType, 'hashtag', options)
+    const html = escapeHtml(formatted).replace(/\n/g, '<br/>')
+    parts.push(`  <p style="${HASHTAG_INLINE_STYLE}">${html}</p>`)
   }
 
   parts.push('</div>')

@@ -106,6 +106,13 @@ export default function BlogEditorPage(): React.JSX.Element {
   const [parsed, setParsed] = useState<ParsedBlog>(emptyParsed())
   const [rules, setRules] = useState<KeywordRule[]>(() => loadStoredRules())
   const [parseMessage, setParseMessage] = useState<{ text: string; ok: boolean } | null>(null)
+  const [mobileFormatOptions, setMobileFormatOptions] = useState<{
+    enabled: boolean
+    maxCharsPerLine: number
+  }>({
+    enabled: true,
+    maxCharsPerLine: 22,
+  })
 
   useEffect(() => {
     try {
@@ -179,8 +186,12 @@ export default function BlogEditorPage(): React.JSX.Element {
   )
 
   const htmlContent = useMemo(
-    () => exportToHtml(parsed, effectiveRules),
-    [parsed, effectiveRules],
+    () =>
+      exportToHtml(parsed, effectiveRules, {
+        mobileFormat: mobileFormatOptions.enabled,
+        maxCharsPerLine: mobileFormatOptions.maxCharsPerLine,
+      }),
+    [parsed, effectiveRules, mobileFormatOptions],
   )
   const markdownContent = useMemo(() => exportToMarkdown(parsed), [parsed])
   const textContent = useMemo(() => exportToPlainText(parsed), [parsed])
@@ -234,7 +245,33 @@ export default function BlogEditorPage(): React.JSX.Element {
         </div>
 
         <div className="blog-editor-column">
-          <BlogPreview parsed={parsed} rules={effectiveRules} />
+          <div className="blog-editor-card">
+            <label className="blog-editor-toggle-row">
+              <input
+                type="checkbox"
+                checked={mobileFormatOptions.enabled}
+                onChange={(e) =>
+                  setMobileFormatOptions((prev) => ({
+                    ...prev,
+                    enabled: e.target.checked,
+                  }))
+                }
+              />
+              <span>
+                <strong>모바일 줄바꿈 모드</strong>
+                <br />
+                네이버 블로그 모바일 폭에 맞게 문장을 자동으로 줄바꿈하고 전체 가운데 정렬합니다.
+              </span>
+            </label>
+          </div>
+          <BlogPreview
+            parsed={parsed}
+            rules={effectiveRules}
+            mobileFormat={{
+              enabled: mobileFormatOptions.enabled,
+              maxCharsPerLine: mobileFormatOptions.maxCharsPerLine,
+            }}
+          />
           <div className="blog-editor-card">
             <h2 className="blog-editor-card-title">4. 복사</h2>
             <p className="blog-editor-card-hint">

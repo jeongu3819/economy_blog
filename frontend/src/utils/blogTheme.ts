@@ -21,103 +21,112 @@ export const HIGHLIGHT_CLASS_OPTIONS: HighlightClassName[] = [
   'highlight-caution',
 ]
 
+const HIGHLIGHT_BASE =
+  'color:inherit;font-weight:700;padding:0 2px;border-radius:0;'
+
 export const HIGHLIGHT_INLINE_STYLES: Record<HighlightClassName, string> = {
-  'highlight-strong-positive':
-    'background:#dcfce7;color:#166534;font-weight:800;padding:2px 5px;border-radius:6px;',
-  'highlight-positive':
-    'background:#e8f5e9;color:#166534;font-weight:700;padding:2px 5px;border-radius:6px;',
-  'highlight-negative':
-    'background:#fee2e2;color:#991b1b;font-weight:700;padding:2px 5px;border-radius:6px;',
-  'highlight-risk':
-    'background:#ffe4e6;color:#be123c;font-weight:800;padding:2px 5px;border-radius:6px;',
-  'highlight-neutral':
-    'background:#eef2ff;color:#3730a3;font-weight:700;padding:2px 5px;border-radius:6px;',
-  'highlight-project-core':
-    'background:#ffedd5;color:#c2410c;font-weight:800;padding:2px 5px;border-radius:6px;',
-  'highlight-tech':
-    'background:#e0f2fe;color:#0369a1;font-weight:800;padding:2px 5px;border-radius:6px;',
-  'highlight-benefit':
-    'background:#dcfce7;color:#166534;font-weight:800;padding:2px 5px;border-radius:6px;',
-  'highlight-caution':
-    'background:#fef3c7;color:#92400e;font-weight:800;padding:2px 5px;border-radius:6px;',
+  'highlight-strong-positive': `${HIGHLIGHT_BASE}background:linear-gradient(transparent 62%, #dcfce7 62%);font-weight:800;`,
+  'highlight-positive': `${HIGHLIGHT_BASE}background:linear-gradient(transparent 62%, #dcfce7 62%);`,
+  'highlight-negative': `${HIGHLIGHT_BASE}background:linear-gradient(transparent 62%, #ffe4e6 62%);`,
+  'highlight-risk': `${HIGHLIGHT_BASE}background:linear-gradient(transparent 62%, #ffe4e6 62%);font-weight:800;`,
+  'highlight-neutral': `${HIGHLIGHT_BASE}background:linear-gradient(transparent 62%, #dbeafe 62%);`,
+  'highlight-project-core': `${HIGHLIGHT_BASE}background:linear-gradient(transparent 62%, #fef3c7 62%);font-weight:800;`,
+  'highlight-tech': `${HIGHLIGHT_BASE}background:linear-gradient(transparent 62%, #dbeafe 62%);font-weight:800;`,
+  'highlight-benefit': `${HIGHLIGHT_BASE}background:linear-gradient(transparent 62%, #dcfce7 62%);font-weight:800;`,
+  'highlight-caution': `${HIGHLIGHT_BASE}background:linear-gradient(transparent 62%, #fef3c7 62%);font-weight:800;`,
 }
+
+const PARAGRAPH_BASE =
+  'font-size:16px;color:#222;margin:18px 0;line-height:1.9;word-break:keep-all;text-align:center;background:transparent;border:none;padding:0;border-radius:0;'
 
 export const PARAGRAPH_INLINE_STYLES: Record<string, string> = {
-  base: 'font-size:16px;color:#374151;margin:12px 0;line-height:1.82;word-break:keep-all;',
-  'paragraph-positive':
-    'background:#f0fdf4;border-left:5px solid #22c55e;padding:12px 14px;border-radius:12px;color:#14532d;',
-  'paragraph-risk':
-    'background:#fff1f2;border-left:5px solid #f43f5e;padding:12px 14px;border-radius:12px;color:#881337;',
-  'paragraph-neutral':
-    'background:#f8fafc;border-left:5px solid #94a3b8;padding:12px 14px;border-radius:12px;color:#1f2937;',
-  'paragraph-project-core':
-    'background:#fff7ed;border-left:5px solid #f97316;padding:13px 15px;border-radius:14px;color:#7c2d12;',
-  'paragraph-benefit':
-    'background:#f0fdf4;border-left:5px solid #22c55e;padding:13px 15px;border-radius:14px;color:#14532d;',
-  'paragraph-caution':
-    'background:#fffbeb;border-left:5px solid #f59e0b;padding:13px 15px;border-radius:14px;color:#78350f;',
+  base: PARAGRAPH_BASE,
+  'paragraph-positive': '',
+  'paragraph-risk': '',
+  'paragraph-neutral': '',
+  'paragraph-project-core': '',
+  'paragraph-benefit': '',
+  'paragraph-caution': '',
 }
+
+export const PARAGRAPH_SOFT_NOTE_INLINE_STYLE =
+  'font-size:16px;color:#222;line-height:1.9;word-break:keep-all;text-align:center;background:#f7fbf8;border-left:3px solid #8fd19e;padding:12px 14px;border-radius:0;margin:20px 0;'
+
+export const PARAGRAPH_SOFT_CAUTION_INLINE_STYLE =
+  'font-size:16px;color:#222;line-height:1.9;word-break:keep-all;text-align:center;background:#fff8f8;border-left:3px solid #f3a6a6;padding:12px 14px;border-radius:0;margin:20px 0;'
 
 const sectionTitleBase =
-  'font-size:22px;font-weight:850;margin:28px 0 14px;padding:10px 14px;border-radius:12px;'
+  'font-size:21px;font-weight:800;color:#111827;line-height:1.55;letter-spacing:-0.02em;margin:42px 0 18px;padding:0;background:transparent;border:none;border-radius:0;text-align:center;'
 
 export const SECTION_TITLE_INLINE_STYLES: Record<string, string> = {
-  base: `${sectionTitleBase}color:#111827;background:#f3f4f6;`,
-  summary: `${sectionTitleBase}background:#eef2ff;color:#3730a3;`,
-  company: `${sectionTitleBase}background:#f0f9ff;color:#075985;`,
-  news: `${sectionTitleBase}background:#ecfdf5;color:#047857;`,
-  filing: `${sectionTitleBase}background:#f8fafc;color:#334155;`,
-  short: `${sectionTitleBase}background:#fff7ed;color:#c2410c;`,
-  trader: `${sectionTitleBase}background:#faf5ff;color:#7e22ce;`,
-  positive: `${sectionTitleBase}background:#ecfdf5;color:#047857;`,
-  risk: `${sectionTitleBase}background:#fff1f2;color:#be123c;`,
-  final: `${sectionTitleBase}background:#111827;color:#ffffff;`,
-  // project-introduction
-  problem: `${sectionTitleBase}background:#f5f3ff;color:#6d28d9;`,
-  structure: `${sectionTitleBase}background:#eff6ff;color:#1d4ed8;`,
-  ui: `${sectionTitleBase}background:#ecfeff;color:#0e7490;`,
-  tech: `${sectionTitleBase}background:#f8fafc;color:#334155;`,
-  core: `${sectionTitleBase}background:#fff7ed;color:#c2410c;`,
-  'project-default': `${sectionTitleBase}background:#f3f4f6;color:#111827;`,
-  'project-final': `${sectionTitleBase}background:#0f172a;color:#ffffff;`,
+  base: sectionTitleBase,
+  summary: sectionTitleBase,
+  company: sectionTitleBase,
+  news: sectionTitleBase,
+  filing: sectionTitleBase,
+  short: sectionTitleBase,
+  trader: sectionTitleBase,
+  positive: sectionTitleBase,
+  risk: sectionTitleBase,
+  final: sectionTitleBase,
+  problem: sectionTitleBase,
+  structure: sectionTitleBase,
+  ui: sectionTitleBase,
+  tech: sectionTitleBase,
+  core: sectionTitleBase,
+  'project-default': sectionTitleBase,
+  'project-final': sectionTitleBase,
 }
 
+export const SECTION_TITLE_ACCENT_INLINE_STYLE =
+  'display:block;width:42px;height:1px;background:#d1d5db;margin:10px auto 0;'
+
 const subsectionTitleBase =
-  'font-size:18px;font-weight:800;margin:18px 0 10px;padding:6px 10px;border-radius:10px;'
+  'font-size:18px;font-weight:800;color:#111827;margin:24px 0 12px;padding:0;background:transparent;border:none;border-radius:0;text-align:center;line-height:1.55;'
 
 export const SUBSECTION_TITLE_INLINE_STYLES: Record<string, string> = {
-  base: `${subsectionTitleBase}color:#111827;background:#f9fafb;border-left:4px solid #9ca3af;`,
-  'project-introduction': `${subsectionTitleBase}color:#1e3a8a;background:#eff6ff;border-left:4px solid #3b82f6;`,
-  'stock-analysis': `${subsectionTitleBase}color:#1f2937;background:#f3f4f6;border-left:4px solid #6b7280;`,
+  base: subsectionTitleBase,
+  'project-introduction': subsectionTitleBase,
+  'stock-analysis': subsectionTitleBase,
 }
 
 export const QUOTE_INLINE_STYLE =
-  'margin:18px 0;background:#f8fafc;border-left:6px solid #3b82f6;border-radius:16px;padding:16px 18px;color:#0f172a;font-size:17px;font-weight:700;line-height:1.75;'
+  'margin:20px auto;background:transparent;border:none;border-radius:0;padding:0;color:#0f172a;font-size:17px;font-weight:700;line-height:1.8;text-align:center;word-break:keep-all;'
 
 export const ORDERED_LIST_INLINE_STYLE =
-  'margin:12px 0 18px 22px;padding:0;color:#374151;font-size:16px;line-height:1.8;'
+  'margin:14px 0 20px;padding:0;color:#222;font-size:16px;line-height:1.9;list-style-position:inside;text-align:center;'
 
-export const ORDERED_LIST_ITEM_INLINE_STYLE = 'margin:6px 0;'
+export const ORDERED_LIST_ITEM_INLINE_STYLE =
+  'margin:8px 0;text-align:center;word-break:keep-all;'
+
+const TITLE_BASE =
+  'font-size:26px;line-height:1.45;font-weight:800;color:#111827;margin:0 0 26px;text-align:center;letter-spacing:-0.02em;background:transparent;border:none;padding:0;word-break:keep-all;'
 
 export const TITLE_INLINE_STYLES: Record<string, string> = {
-  base: 'font-size:30px;line-height:1.35;font-weight:900;color:#111827;border-left:8px solid #2563eb;padding-left:14px;margin:0 0 10px;',
-  'project-introduction':
-    'font-size:30px;line-height:1.35;font-weight:900;color:#0f172a;border-left:8px solid #3b82f6;padding-left:14px;margin:0 0 14px;',
+  base: TITLE_BASE,
+  'project-introduction': TITLE_BASE,
 }
 
 export const TITLE_INLINE_STYLE = TITLE_INLINE_STYLES.base
 
-export const DATE_INLINE_STYLE = 'font-size:13px;color:#6b7280;margin:0 0 18px;'
+export const DATE_INLINE_STYLE =
+  'font-size:13px;color:#6b7280;margin:0 0 22px;text-align:center;'
+
+const INTRO_BASE =
+  'background:transparent;border:none;border-radius:0;padding:0;margin:0 0 26px;color:#222;font-weight:500;line-height:1.9;text-align:center;word-break:keep-all;font-size:16px;'
 
 export const INTRO_INLINE_STYLES: Record<string, string> = {
-  base: 'background:#eff6ff;border:1px solid #bfdbfe;border-radius:16px;padding:16px;margin:0 0 24px;color:#1e3a8a;font-weight:500;line-height:1.82;',
-  'project-introduction':
-    'background:#eff6ff;border:1px solid #bfdbfe;border-radius:18px;padding:18px;margin:0 0 22px;color:#1e3a8a;font-weight:500;line-height:1.85;',
+  base: INTRO_BASE,
+  'project-introduction': INTRO_BASE,
 }
 
 export const INTRO_INLINE_STYLE = INTRO_INLINE_STYLES.base
 
 export const DISCLAIMER_INLINE_STYLE =
-  'margin-top:32px;background:#fffbeb;border:1px solid #fcd34d;border-left:6px solid #f59e0b;border-radius:16px;padding:16px;color:#78350f;font-size:14px;line-height:1.75;'
+  'margin:32px auto 0;background:#fffbeb;border:1px solid #fcd34d;border-left:3px solid #f59e0b;border-radius:0;padding:14px;color:#78350f;font-size:14px;line-height:1.8;text-align:center;word-break:keep-all;'
 
-export const HASHTAG_INLINE_STYLE = 'margin-top:24px;color:#2563eb;font-weight:700;line-height:1.8;'
+export const HASHTAG_INLINE_STYLE =
+  'margin:26px auto 0;color:#2563eb;font-weight:700;line-height:1.9;text-align:center;word-break:keep-all;'
+
+export const BLOG_WRAPPER_INLINE_STYLE =
+  "max-width:430px;width:100%;margin:0 auto;font-family:Arial,'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;line-height:1.85;color:#222;text-align:center;word-break:keep-all;overflow-wrap:break-word;box-sizing:border-box;padding:22px 18px;background:#ffffff;"
