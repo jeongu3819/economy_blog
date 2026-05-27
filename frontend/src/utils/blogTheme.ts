@@ -37,7 +37,10 @@ export const HIGHLIGHT_INLINE_STYLES: Record<HighlightClassName, string> = {
 }
 
 const PARAGRAPH_BASE =
-  'font-size:16px;color:#222;margin:18px 0;line-height:1.9;word-break:keep-all;text-align:center;background:transparent;border:none;padding:0;border-radius:0;'
+  'font-size:16px;color:#222;margin:22px 0;line-height:1.95;word-break:keep-all;text-align:center;background:transparent;border:none;padding:0;border-radius:0;'
+
+export const HEADING_HIGHLIGHT_INLINE_STYLE =
+  'background:#f6ddc3;color:#111827;font-weight:800;padding:0 6px;line-height:1.6;border-radius:0;box-decoration-break:clone;-webkit-box-decoration-break:clone;'
 
 export const PARAGRAPH_INLINE_STYLES: Record<string, string> = {
   base: PARAGRAPH_BASE,
@@ -56,7 +59,7 @@ export const PARAGRAPH_SOFT_CAUTION_INLINE_STYLE =
   'font-size:16px;color:#222;line-height:1.9;word-break:keep-all;text-align:center;background:#fff8f8;border-left:3px solid #f3a6a6;padding:12px 14px;border-radius:0;margin:20px 0;'
 
 const sectionTitleBase =
-  'font-size:21px;font-weight:800;color:#111827;line-height:1.55;letter-spacing:-0.02em;margin:42px 0 18px;padding:0;background:transparent;border:none;border-radius:0;text-align:center;'
+  'font-size:21px;font-weight:800;color:#111827;line-height:1.6;letter-spacing:-0.02em;margin:44px 0 20px;padding:0;background:transparent;border:none;border-radius:0;text-align:center;'
 
 export const SECTION_TITLE_INLINE_STYLES: Record<string, string> = {
   base: sectionTitleBase,
@@ -78,11 +81,8 @@ export const SECTION_TITLE_INLINE_STYLES: Record<string, string> = {
   'project-final': sectionTitleBase,
 }
 
-export const SECTION_TITLE_ACCENT_INLINE_STYLE =
-  'display:block;width:42px;height:1px;background:#d1d5db;margin:10px auto 0;'
-
 const subsectionTitleBase =
-  'font-size:18px;font-weight:800;color:#111827;margin:24px 0 12px;padding:0;background:transparent;border:none;border-radius:0;text-align:center;line-height:1.55;'
+  'font-size:18px;font-weight:800;color:#111827;margin:30px 0 16px;padding:0;background:transparent;border:none;border-radius:0;text-align:center;line-height:1.6;'
 
 export const SUBSECTION_TITLE_INLINE_STYLES: Record<string, string> = {
   base: subsectionTitleBase,
@@ -100,7 +100,7 @@ export const ORDERED_LIST_ITEM_INLINE_STYLE =
   'margin:8px 0;text-align:center;word-break:keep-all;'
 
 const TITLE_BASE =
-  'font-size:26px;line-height:1.45;font-weight:800;color:#111827;margin:0 0 26px;text-align:center;letter-spacing:-0.02em;background:transparent;border:none;padding:0;word-break:keep-all;'
+  'font-size:26px;line-height:1.6;font-weight:800;color:#111827;margin:0 0 28px;text-align:center;letter-spacing:-0.02em;background:transparent;border:none;padding:0;word-break:keep-all;'
 
 export const TITLE_INLINE_STYLES: Record<string, string> = {
   base: TITLE_BASE,
@@ -113,7 +113,7 @@ export const DATE_INLINE_STYLE =
   'font-size:13px;color:#6b7280;margin:0 0 22px;text-align:center;'
 
 const INTRO_BASE =
-  'background:transparent;border:none;border-radius:0;padding:0;margin:0 0 26px;color:#222;font-weight:500;line-height:1.9;text-align:center;word-break:keep-all;font-size:16px;'
+  'background:transparent;border:none;border-radius:0;padding:0;margin:0 0 28px;color:#222;font-weight:500;line-height:1.95;text-align:center;word-break:keep-all;font-size:16px;'
 
 export const INTRO_INLINE_STYLES: Record<string, string> = {
   base: INTRO_BASE,

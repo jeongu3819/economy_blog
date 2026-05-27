@@ -11,6 +11,7 @@ import {
   DATE_INLINE_STYLE,
   DISCLAIMER_INLINE_STYLE,
   HASHTAG_INLINE_STYLE,
+  HEADING_HIGHLIGHT_INLINE_STYLE,
   INTRO_INLINE_STYLES,
   ORDERED_LIST_INLINE_STYLE,
   ORDERED_LIST_ITEM_INLINE_STYLE,
@@ -18,7 +19,6 @@ import {
   PARAGRAPH_SOFT_CAUTION_INLINE_STYLE,
   PARAGRAPH_SOFT_NOTE_INLINE_STYLE,
   QUOTE_INLINE_STYLE,
-  SECTION_TITLE_ACCENT_INLINE_STYLE,
   SECTION_TITLE_INLINE_STYLES,
   SUBSECTION_TITLE_INLINE_STYLES,
   TITLE_INLINE_STYLES,
@@ -90,6 +90,25 @@ function inlineHighlightWithBreaks(
     .join('<br/>')
 }
 
+function renderHeadingHtml(formatted: string): string {
+  const inner = escapeHtml(formatted).replace(/\n/g, '<br/>')
+  return `<span style="${HEADING_HIGHLIGHT_INLINE_STYLE}">${inner}</span>`
+}
+
+function renderMultiParagraphHtml(
+  formatted: string,
+  rules: KeywordRule[],
+  paragraphStyleStr: string,
+): string {
+  const paragraphs = formatted.split(/\n{2,}/)
+  return paragraphs
+    .map((p) => {
+      const html = inlineHighlightWithBreaks(p, rules)
+      return `<p style="${paragraphStyleStr}">${html}</p>`
+    })
+    .join('\n')
+}
+
 function renderContentBlock(
   block: ContentBlock,
   rules: KeywordRule[],
@@ -100,8 +119,8 @@ function renderContentBlock(
 ): string {
   if (typeof block === 'string') {
     const formatted = applyMobileFormat(block, blogType, 'paragraph', options)
-    const html = inlineHighlightWithBreaks(formatted, rules)
-    return `<p style="${paragraphStyle(block, blogType, sectionHeading, indexInSection)}">${html}</p>`
+    const styleStr = paragraphStyle(block, blogType, sectionHeading, indexInSection)
+    return renderMultiParagraphHtml(formatted, rules, styleStr)
   }
   if (block.type === 'ordered-list') {
     const items = block.items
@@ -128,8 +147,7 @@ function renderSection(
   options: ExportHtmlOptions,
 ): string {
   const headingFormatted = applyMobileFormat(section.heading, blogType, 'section-title', options)
-  const headingHtml = escapeHtml(headingFormatted).replace(/\n/g, '<br/>')
-  const titleHtml = `<h2 style="${sectionTitleStyle(section.type)}">${headingHtml}<span style="${SECTION_TITLE_ACCENT_INLINE_STYLE}"></span></h2>`
+  const titleHtml = `<h2 style="${sectionTitleStyle(section.type)}">${renderHeadingHtml(headingFormatted)}</h2>`
   const paragraphsHtml = section.paragraphs
     .map((p, idx) => renderContentBlock(p, rules, blogType, section.heading, idx, options))
     .join('\n')
@@ -149,8 +167,7 @@ function renderSubsection(
   options: ExportHtmlOptions,
 ): string {
   const headingFormatted = applyMobileFormat(section.heading, blogType, 'subsection-title', options)
-  const headingHtml = escapeHtml(headingFormatted).replace(/\n/g, '<br/>')
-  const titleHtml = `<h3 style="${subsectionTitleStyle(blogType)}">${headingHtml}</h3>`
+  const titleHtml = `<h3 style="${subsectionTitleStyle(blogType)}">${renderHeadingHtml(headingFormatted)}</h3>`
   const paragraphsHtml = section.paragraphs
     .map((p, idx) => renderContentBlock(p, rules, blogType, section.heading, idx, options))
     .join('\n')
@@ -168,16 +185,15 @@ export function exportToHtml(
 
   if (parsed.selectedTitle) {
     const formatted = applyMobileFormat(parsed.selectedTitle, blogType, 'title', options)
-    const html = escapeHtml(formatted).replace(/\n/g, '<br/>')
-    parts.push(`  <h1 style="${titleStyle(blogType)}">${html}</h1>`)
+    parts.push(`  <h1 style="${titleStyle(blogType)}">${renderHeadingHtml(formatted)}</h1>`)
   }
   if (parsed.analysisDate) {
     parts.push(`  <p style="${DATE_INLINE_STYLE}">분석 날짜: ${escapeHtml(parsed.analysisDate)}</p>`)
   }
   if (parsed.selectedIntro) {
     const formatted = applyMobileFormat(parsed.selectedIntro, blogType, 'intro', options)
-    const html = inlineHighlightWithBreaks(formatted, rules)
-    parts.push(`  <div style="${introStyle(blogType)}">${html}</div>`)
+    const inner = renderMultiParagraphHtml(formatted, rules, introStyle(blogType))
+    parts.push(`  ${inner}`)
   }
   if (parsed.introQuote) {
     const formatted = applyMobileFormat(parsed.introQuote, blogType, 'quote', options)
@@ -191,7 +207,10 @@ export function exportToHtml(
 
   if (parsed.disclaimer) {
     const formatted = applyMobileFormat(parsed.disclaimer, blogType, 'disclaimer', options)
-    const text = escapeHtml(formatted).replace(/\n/g, '<br/>')
+    const text = escapeHtml(formatted)
+      .split(/\n{2,}/)
+      .map((p) => p.replace(/\n/g, '<br/>'))
+      .join('<br/><br/>')
     parts.push(
       `  <div style="${DISCLAIMER_INLINE_STYLE}"><strong>⚠️ 투자 주의문구</strong><br/>${text}</div>`,
     )

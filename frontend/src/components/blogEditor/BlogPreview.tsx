@@ -68,6 +68,26 @@ function highlightWithBreaks(text: string, rules: KeywordRule[]): string {
     .join('<br/>')
 }
 
+function splitParagraphs(formatted: string): string[] {
+  return formatted.split(/\n{2,}/).filter((p) => p.length > 0)
+}
+
+function renderParagraphElements(
+  formatted: string,
+  rules: KeywordRule[],
+  className: string,
+  keyPrefix: string,
+): React.ReactNode[] {
+  const paragraphs = splitParagraphs(formatted)
+  return paragraphs.map((p, i) => (
+    <p
+      key={`${keyPrefix}-${i}`}
+      className={className}
+      dangerouslySetInnerHTML={{ __html: highlightWithBreaks(p, rules) }}
+    />
+  ))
+}
+
 function renderBlock(
   block: ContentBlock,
   rules: KeywordRule[],
@@ -80,13 +100,18 @@ function renderBlock(
   if (typeof block === 'string') {
     const boxCls = paragraphBoxClass(block, blogType, sectionHeading, indexInSection)
     const formatted = formatText(block, blogType, 'paragraph', mobileFormat)
-    const html = highlightWithBreaks(formatted, rules)
+    const className = `blog-preview-paragraph ${boxCls}`.trim()
+    const paragraphs = splitParagraphs(formatted)
     return (
-      <p
-        key={key}
-        className={`blog-preview-paragraph ${boxCls}`.trim()}
-        dangerouslySetInnerHTML={{ __html: html }}
-      />
+      <React.Fragment key={key}>
+        {paragraphs.map((p, i) => (
+          <p
+            key={`${key}-${i}`}
+            className={className}
+            dangerouslySetInnerHTML={{ __html: highlightWithBreaks(p, rules) }}
+          />
+        ))}
+      </React.Fragment>
     )
   }
   if (block.type === 'ordered-list') {
@@ -114,29 +139,14 @@ function renderBlock(
   return null
 }
 
-function renderSectionHeading(
-  heading: string,
-  blogType: ParsedBlog['blogType'],
-  mobileFormat: MobileFormatOptions,
-): React.ReactNode {
-  const formatted = formatText(heading, blogType, 'section-title', mobileFormat)
-  const escaped = escapeHtml(formatted)
+function renderHeadingHighlight(formatted: string): React.ReactNode {
+  const escaped = escapeHtml(formatted).replace(/\n/g, '<br/>')
   return (
-    <>
-      <span dangerouslySetInnerHTML={{ __html: escaped.replace(/\n/g, '<br/>') }} />
-      <span className="blog-preview-section-title-accent" aria-hidden="true" />
-    </>
+    <span
+      className="blog-highlight-heading"
+      dangerouslySetInnerHTML={{ __html: escaped }}
+    />
   )
-}
-
-function renderSubsectionHeading(
-  heading: string,
-  blogType: ParsedBlog['blogType'],
-  mobileFormat: MobileFormatOptions,
-): React.ReactNode {
-  const formatted = formatText(heading, blogType, 'subsection-title', mobileFormat)
-  const escaped = escapeHtml(formatted)
-  return <span dangerouslySetInnerHTML={{ __html: escaped.replace(/\n/g, '<br/>') }} />
 }
 
 function renderSection(
@@ -145,24 +155,38 @@ function renderSection(
   blogType: ParsedBlog['blogType'],
   mobileFormat: MobileFormatOptions,
 ) {
+  const headingFormatted = formatText(
+    section.heading,
+    blogType,
+    'section-title',
+    mobileFormat,
+  )
   return (
     <div key={section.id} className={`blog-preview-section ${sectionClass(section.type)}`}>
       <h2 className="blog-preview-section-title">
-        {renderSectionHeading(section.heading, blogType, mobileFormat)}
+        {renderHeadingHighlight(headingFormatted)}
       </h2>
       {section.paragraphs.map((p, idx) =>
         renderBlock(p, rules, blogType, section.heading, idx, mobileFormat, idx),
       )}
-      {section.children.map((child) => (
-        <div key={child.id} className="blog-preview-subsection">
-          <h3 className="blog-preview-subsection-title">
-            {renderSubsectionHeading(child.heading, blogType, mobileFormat)}
-          </h3>
-          {child.paragraphs.map((p, idx) =>
-            renderBlock(p, rules, blogType, child.heading, idx, mobileFormat, idx),
-          )}
-        </div>
-      ))}
+      {section.children.map((child) => {
+        const childHeadingFormatted = formatText(
+          child.heading,
+          blogType,
+          'subsection-title',
+          mobileFormat,
+        )
+        return (
+          <div key={child.id} className="blog-preview-subsection">
+            <h3 className="blog-preview-subsection-title">
+              {renderHeadingHighlight(childHeadingFormatted)}
+            </h3>
+            {child.paragraphs.map((p, idx) =>
+              renderBlock(p, rules, blogType, child.heading, idx, mobileFormat, idx),
+            )}
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -203,24 +227,15 @@ export default function BlogPreview({
           className={`blog-preview blog-preview-${blogType}`}
         >
           {titleFormatted && (
-            <h1
-              className="blog-preview-title"
-              dangerouslySetInnerHTML={{
-                __html: escapeHtml(titleFormatted).replace(/\n/g, '<br/>'),
-              }}
-            />
+            <h1 className="blog-preview-title">
+              {renderHeadingHighlight(titleFormatted)}
+            </h1>
           )}
           {parsed.analysisDate && (
             <p className="blog-preview-date">분석 날짜: {parsed.analysisDate}</p>
           )}
-          {introFormatted && (
-            <div
-              className="blog-preview-intro"
-              dangerouslySetInnerHTML={{
-                __html: highlightWithBreaks(introFormatted, rules),
-              }}
-            />
-          )}
+          {introFormatted &&
+            renderParagraphElements(introFormatted, rules, 'blog-preview-intro', 'intro')}
           {introQuoteFormatted && (
             <div
               className="blog-preview-quote"
@@ -237,7 +252,10 @@ export default function BlogPreview({
               <strong>⚠️ 투자 주의문구</strong>
               <div
                 dangerouslySetInnerHTML={{
-                  __html: escapeHtml(disclaimerFormatted).replace(/\n/g, '<br/>'),
+                  __html: escapeHtml(disclaimerFormatted)
+                    .split(/\n{2,}/)
+                    .map((p) => p.replace(/\n/g, '<br/>'))
+                    .join('<br/><br/>'),
                 }}
               />
             </div>

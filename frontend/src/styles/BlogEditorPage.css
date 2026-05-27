@@ -249,16 +249,28 @@
 
 .blog-preview-title {
   font-size: 26px;
-  line-height: 1.45;
+  line-height: 1.6;
   font-weight: 800;
   color: #111827;
-  margin: 0 0 26px;
+  margin: 0 0 28px;
   text-align: center;
   letter-spacing: -0.02em;
   background: transparent;
   border: none;
   padding: 0;
   word-break: keep-all;
+}
+
+.blog-highlight-heading {
+  display: inline;
+  background: #f6ddc3;
+  color: #111827;
+  font-weight: 800;
+  padding: 0 6px;
+  line-height: 1.6;
+  border-radius: 0;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
 }
 
 .blog-preview-date {
@@ -273,13 +285,17 @@
   border: none;
   border-radius: 0;
   padding: 0;
-  margin: 0 0 26px;
+  margin: 0 0 22px;
   color: #222;
   font-weight: 500;
   font-size: 16px;
-  line-height: 1.9;
+  line-height: 1.95;
   text-align: center;
   word-break: keep-all;
+}
+
+.blog-preview-intro + .blog-preview-intro {
+  margin-top: 6px;
 }
 
 .blog-preview-section {
@@ -290,9 +306,9 @@
   font-size: 21px;
   font-weight: 800;
   color: #111827;
-  line-height: 1.55;
+  line-height: 1.6;
   letter-spacing: -0.02em;
-  margin: 42px 0 18px;
+  margin: 44px 0 20px;
   padding: 0;
   background: transparent;
   border: none;
@@ -300,19 +316,15 @@
   text-align: center;
 }
 
-.blog-preview-section-title-accent {
-  display: block;
-  width: 42px;
-  height: 1px;
-  background: #d1d5db;
-  margin: 10px auto 0;
+.blog-preview-section-title + .blog-preview-paragraph {
+  margin-top: 18px;
 }
 
 .blog-preview-paragraph {
   font-size: 16px;
-  line-height: 1.9;
+  line-height: 1.95;
   color: #222;
-  margin: 18px 0;
+  margin: 22px 0;
   text-align: center;
   background: transparent;
   border: none;
@@ -513,13 +525,17 @@
   font-size: 18px;
   font-weight: 800;
   color: #111827;
-  margin: 24px 0 12px;
+  margin: 30px 0 16px;
   padding: 0;
   background: transparent;
   border: none;
   border-radius: 0;
   text-align: center;
-  line-height: 1.55;
+  line-height: 1.6;
+}
+
+.blog-preview-subsection-title + .blog-preview-paragraph {
+  margin-top: 14px;
 }
 
 .blog-preview-ordered-list {
